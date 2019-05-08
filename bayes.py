@@ -1,4 +1,3 @@
-# Example of Naive Bayes implemented from Scratch in Python
 import csv
 import random
 import math
@@ -28,9 +27,11 @@ def separateByClass(dataset):
 		separated[vector[-1]].append(vector)
 	return separated
  
+ # Tinh trung binh
 def mean(numbers):
 	return sum(numbers)/float(len(numbers))
  
+# Tinh do lech chuan
 def stdev(numbers):
 	avg = mean(numbers)
 	variance = sum([pow(x-avg,2) for x in numbers])/float(len(numbers)-1)
