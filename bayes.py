@@ -1,3 +1,4 @@
+# Example of Naive Bayes implemented from Scratch in Python
 import csv
 import random
 import math
@@ -25,13 +26,14 @@ def separateByClass(dataset):
 		if (vector[-1] not in separated):
 			separated[vector[-1]] = []
 		separated[vector[-1]].append(vector)
+
+	# print (len(separated))
 	return separated
  
- # Tinh trung binh
 def mean(numbers):
 	return sum(numbers)/float(len(numbers))
- 
-# Tinh do lech chuan
+
+# Tinh do lech chuan 
 def stdev(numbers):
 	avg = mean(numbers)
 	variance = sum([pow(x-avg,2) for x in numbers])/float(len(numbers)-1)
@@ -40,11 +42,11 @@ def stdev(numbers):
 def summarize(dataset):
 	summaries = [(mean(attribute), stdev(attribute)) for attribute in zip(*dataset)]
 	del summaries[-1]
+	#print (len(summaries))
 	return summaries
  
 def summarizeByClass(dataset):
 	separated = separateByClass(dataset)
-	print(len(separated[1.0]) + len(separated[0.0]))
 	summaries = {}
 	for classValue, instances in separated.items():
 		summaries[classValue] = summarize(instances)
@@ -95,9 +97,14 @@ def main():
 	print('Split {0} rows into train={1} and test={2} rows'.format(len(dataset), len(trainingSet), len(testSet)))
 	# prepare model
 	summaries = summarizeByClass(trainingSet)
-	# print(summaries)
 	# test model
 	predictions = getPredictions(summaries, testSet)
+	
+	for x in range(len(testSet)):
+		print("Prediction ", end = '')
+		print(predictions[x], end ='')
+		print(" Actual ", end = '')
+		print(testSet[x][-1])
 	accuracy = getAccuracy(testSet, predictions)
 	print('Accuracy: {0}%'.format(accuracy))
  
