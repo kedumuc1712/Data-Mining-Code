@@ -29,6 +29,7 @@ def getNeighbors(trainingSet, testInstance, k):
 		dist = euclideanDistance(testInstance, trainingSet[x], length)
 		distances.append((trainingSet[x], dist))
 	distances.sort(key=operator.itemgetter(1))
+	print(distances)
 	neighbors = []
 	for x in range(k):
 		neighbors.append(distances[x][0])
@@ -67,8 +68,8 @@ def main():
 		neighbors = getNeighbors(trainingSet, testSet[x], k)
 		result = getResponse(neighbors)
 		predictions.append(result)
-		print('> predicted=' + repr(result) + ', actual=' + repr(testSet[x][-1]))
+		# print('> predicted=' + repr(result) + ', actual=' + repr(testSet[x][-1]))
 	accuracy = getAccuracy(testSet, predictions)
-	print('Accuracy: ' + repr(accuracy) + '%')
+	# print('Accuracy: ' + repr(accuracy) + '%')
 	
 main()
