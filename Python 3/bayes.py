@@ -42,7 +42,7 @@ def stdev(numbers):
 def summarize(dataset):
 	summaries = [(mean(attribute), stdev(attribute)) for attribute in zip(*dataset)]
 	del summaries[-1]
-	#print (len(summaries))
+	print (summaries)
 	return summaries
  
 def summarizeByClass(dataset):

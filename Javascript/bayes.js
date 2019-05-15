@@ -1,4 +1,4 @@
-var data = [[5.1,3.5,1.4,0.2,0],
+var dataSet = [[5.1,3.5,1.4,0.2,0],
 [4.9,3.0,1.4,0.2,0],
 [4.7,3.2,1.3,0.2,0],
 [4.6,3.1,1.5,0.2,0],
@@ -147,7 +147,86 @@ var data = [[5.1,3.5,1.4,0.2,0],
 [6.3,2.5,5.0,1.9,2],
 [6.5,3.0,5.2,2.0,2],
 [6.2,3.4,5.4,2.3,2],
-[5.9,3.0,5.1,1.8,2],
+[5.9,3.0,5.1,1.8,2]];
 
-];
+
+arrSum = function(arr){
+    return arr.reduce(function(a,b){
+      return a + b
+    }, 0);
+  }
+
+function splitDataset(dataSet, trainingSet, testSet) {
+    for (let i = 0; i < 60; i++) {
+        trainingSet.push(dataSet[i]);
+    }
+
+    for (let i = 60; i < dataSet.length; i++) {
+        testSet.push(dataSet[i]);
+    }
+}
+
+function separateByClass(dataSet) {
+    let separated = {};
+    for (let i = 0; i < dataSet.length; i++) {
+        let vector = dataSet[i];
+        if (!(vector[4] in separated)) {
+            separated[vector[4]] = [];
+        }
+        separated[vector[4]].push(vector);
+    }
+
+    return separated;
+}
+
+function mean(numbers) {
+    return arrSum(numbers) / (numbers.length);
+}
+
+function stdev(numbers) {
+    let avg = mean(numbers);
+    let sigma = 0;
+
+    for (let i = 0; i < numbers.length; i++) {
+        sigma += Math.pow(numbers[i] - avg, 2);
+    }
+
+    let variance = sigma / (numbers.length - 1);
+    return Math.sqrt(variance);
+}
+
+function summaries(dataSet) {
+    let summaries = [];
+    let column1 = [];
+    let column2 = [];
+    let column3 = [];
+    let column4 = [];
+
+    
+    for (let k = 0; k < dataSet.length; k++) {
+        column1.push(dataSet[k][0]);
+        column2.push(dataSet[k][1]);
+        column3.push(dataSet[k][2]);
+        column4.push(dataSet[k][3]);
+    }
+
+    summaries.push([mean(column1), stdev(column1)]);
+    summaries.push([mean(column2), stdev(column2)]);
+    summaries.push([mean(column3), stdev(column3)]);
+    summaries.push([mean(column4), stdev(column4)]);
+
+    console.log(summaries);
+
+    return summaries;
+}
+
+function main() {
+    trainingSet = [];
+    testSet = [];
+    splitDataset(dataSet, trainingSet, testSet);
+
+    summaries(dataSet);
+}
+
+main();
 
