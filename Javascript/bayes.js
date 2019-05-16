@@ -195,7 +195,7 @@ function stdev(numbers) {
     return Math.sqrt(variance);
 }
 
-function summaries(dataSet) {
+function summarize(dataSet) {
     let summaries = [];
     let column1 = [];
     let column2 = [];
@@ -215,9 +215,80 @@ function summaries(dataSet) {
     summaries.push([mean(column3), stdev(column3)]);
     summaries.push([mean(column4), stdev(column4)]);
 
-    console.log(summaries);
+    //console.log(summaries);
 
     return summaries;
+}
+
+function summarizeByClass(dataSet) {
+    let separated = separateByClass(dataSet);
+    let summaries = {};
+
+   for (let property in separated) {
+      summaries[property] = summarize(separated[property]);
+      
+   }
+   //console.log(summaries);
+   
+   return summaries;
+}
+
+function calculateProbalibity(x, mean, stdev) {
+    let exponent = Math.exp(-(Math.pow(x - mean, 2) / (2 * Math.pow(stdev, 2))));
+    return (1 / (Math.sqrt(2 * Math.PI) * stdev)) * exponent;
+}
+
+function calculateClassProbabilities(summaries, inputVector) {
+    let probabilities = {};
+    for (let property in summaries) {
+        probabilities[property] = 1;
+        for (let i = 0; i < summaries[property].length; i++) {
+            //console.log(summaries[property]);
+            let mean = summaries[property][0];
+            let stdev = summaries[property][1];
+            let x = inputVector[i];
+            probabilities[property] *= calculateProbalibity(x, mean, stdev)
+        }
+    }
+    //console.log(probabilities);
+    return probabilities;
+}
+
+function predict(summaries, inputVector) {
+    let probabilities = calculateClassProbabilities(summaries, inputVector);
+    let bestLabel = -1;
+    let bestProb = -1;
+
+    for (let classValue in probabilities) {
+        if (bestLabel == -1 || bestProb < probabilities[classValue]) {
+            bestProb = probabilities[classValue];
+            bestLabel = classValue;
+        }
+    }
+    //console.log(bestLabel);
+
+    return bestLabel;
+}
+
+function getPredictions(summaries, testSet) {
+    let predictions = [];
+    for (let i = 0; i < testSet.length; i++) {
+        let result = predict(summaries, testSet[i]);
+        predictions.push(result);
+    }
+
+    return predictions;
+}
+
+function getAccuracy(testSet, predictions) {
+    let correct = 0;
+    for (let i = 0; i < testSet.length; i++) {
+        if (testSet[i][4] == predictions[i]) {
+            correct += 1;
+        }
+    }
+
+    return (correct / testSet.length) * 100;
 }
 
 function main() {
@@ -225,7 +296,13 @@ function main() {
     testSet = [];
     splitDataset(dataSet, trainingSet, testSet);
 
-    summaries(dataSet);
+    let summaries = summarizeByClass(trainingSet);
+    let predictions = getPredictions(summaries, testSet);
+    let accuracy = getAccuracy(testSet, predictions);
+
+    //calculateClassProbabilities(summaries, [1.2, 2.5, 3.6, 4.8]);
+    calculateProbalibity(7, 5.2, 3.6);
+    console.log(accuracy);
 }
 
 main();

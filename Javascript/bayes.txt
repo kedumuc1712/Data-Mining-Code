@@ -1,0 +1,192 @@
+const data = require('./data.json');
+
+splitRatio = 0.6;
+
+/**
+ * random 1 so trong 1 khoang
+ */
+getRandomInt = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+};
+
+/**
+ * lay splitRatio % phan tu dau cho vao tap training
+ * con lai cho vao tap test
+ */
+splitDataset = (dataset, splitRatio) => {
+  trainSize = dataset.length * splitRatio;
+  trainSet = [];
+  copy = dataset;
+  while (trainSet.length < trainSize) {
+    index = getRandomInt(0, copy.length);
+    trainSet.push(copy[index]);
+    copy.splice(index, 1);
+  }
+  return [trainSet, copy];
+};
+
+/**
+ * chia class theo ket qua (co bi benh hay k)
+ */
+separateByClass = dataset => {
+  separated = {};
+  dataset.map((value, index) => {
+    vector = dataset[index];
+    length = vector.length;
+    if (!(vector[length - 1] in separated)) {
+      separated[vector[length - 1]] = [];
+    }
+    separated[vector[length - 1]].push(vector);
+  });
+  return separated;
+};
+
+/**
+ * tinh tong cac so trong 1 mang
+ */
+sum = array => {
+  let result = 0;
+  for (i in array) {
+    result += array[i];
+  }
+  return result;
+};
+
+/**
+ * tinh trung binh cong cua cac so trong 1 mang
+ */
+mean = numbers => {
+  return sum(numbers) / numbers.length;
+};
+
+/**
+ * tinh do lech chuan cua cac so trong 1 mang
+ */
+stdev = numbers => {
+  let array = [];
+  avg = mean(numbers);
+  for (x in numbers) {
+    array.push(Math.pow(numbers[x] - avg, 2));
+  }
+  variance = sum(array) / (numbers.length - 1);
+  return Math.sqrt(variance);
+};
+
+/**
+ * lay nhung phan tu trong mang 2 chieu theo cot
+ */
+zip = (data, index) => {
+  let array = [];
+  data.map(value => {
+    array.push(value[index]);
+  });
+  return array;
+};
+
+/**
+ * tinh trung binh cong va do lenh chuan cua 1 cot
+ */
+summarize = dataset => {
+  let summaries = [];
+  for (x in dataset) {
+    attribute = zip(dataset, x);
+    let info = [mean(attribute), stdev(attribute)];
+    summaries.push(info);
+  }
+  return summaries;
+};
+
+/**
+ * tinh trung binh cong va do lech chuan theo class (cot)
+ */
+summarizeByClass = dataset => {
+  separated = separateByClass(dataset);
+  summaries = {};
+  for (instances in separated) {
+    classValue = separated[instances];
+    summaries[instances] = summarize(classValue);
+  }
+  return summaries;
+};
+
+/**
+ * cong thuc tinh xac suat theo phan bo chuan (phan phoi gauss)
+ */
+calculateProbability = (x, mean, stdev) => {
+  exponent = Math.exp(-(Math.pow(x - mean, 2) / (2 * Math.pow(stdev, 2))));
+  return (1 / (Math.sqrt(2 * Math.PI) * stdev)) * exponent;
+};
+
+/**
+ * tinh xac suat bi benh va khong bi benh cua tap test (inputVector) - 1 hang
+ */
+calculateClassProbabilities = (summaries, inputVector) => {
+  probabilities = {};
+  for (classValue in summaries) {
+    classSummaries = summaries[classValue];
+    probabilities[classValue] = 1;
+    for (i in classSummaries) {
+      [mean, stdev] = classSummaries[i];
+      x = inputVector[i];
+      probabilities[classValue] *= calculateProbability(x, mean, stdev);
+    }
+  }
+  return probabilities;
+};
+
+/**
+ * so sanh 1 hang xac suat bi benh hay k bi benh nhieu hon
+ */
+predict = (summaries, inputVector) => {
+  probabilities = calculateClassProbabilities(summaries, inputVector);
+  let bestLabel = null,
+    bestProb = -1;
+  for (classValue in probabilities) {
+    probability = probabilities[classValue];
+    if (!bestLabel || probability > bestProb) {
+      bestProb = probability;
+      bestLabel = classValue;
+    }
+  }
+  return bestLabel;
+};
+
+/**
+ * chay het cac hang trong tap test, tra ve du doan tung hang
+ */
+getPredictions = (summaries, testSet) => {
+  predictions = [];
+  for (i in testSet) {
+    result = predict(summaries, testSet[i]);
+    predictions.push(result);
+  }
+  return predictions;
+};
+
+/**
+ * tinh do chinh xac cua thuat toan
+ */
+getAccuracy = (testSet, predictions) => {
+  correct = 0;
+  for (x in testSet) {
+    array = testSet[x];
+    if (array[array.length - 1] == predictions[x]) {
+      correct += 1;
+    }
+  }
+  return (correct / testSet.length) * 100.0;
+};
+
+/**
+ * main
+ */
+[trainingSet, testSet] = splitDataset(data, splitRatio);
+console.log('trainingSet', trainingSet.length);
+console.log('testSet', testSet.length);
+
+summaries = summarizeByClass(trainingSet);
+predictions = getPredictions(summaries, testSet);
+accuracy = getAccuracy(testSet, predictions);
+console.log('Do chinh xac: ' + accuracy + '%');
